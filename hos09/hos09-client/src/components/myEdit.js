@@ -1,12 +1,42 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router";
-function MyCreate() {
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router";
+function MyEdit() {
   const [form, setForm] = useState({
     name: "",
     position: "",
     level: "",
+    records: [],
   });
+  const params = useParams();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchData() {
+      const id = params.id.toString();
+      const response = await fetch(
+        `http://localhost:8000/api/records/${params.id.toString()}`
+      );
+
+      if (!response.ok) {
+        const message = `An error has occurred: ${response.statusText}`;
+        window.alert(message);
+        return;
+      }
+
+      const record = await response.json();
+      if (!record) {
+        window.alert(`Record with id ${id} not found`);
+        navigate("/");
+        return;
+      }
+
+      setForm(record);
+    }
+
+    fetchData();
+
+    return;
+  }, [params.id, navigate]);
 
   // These methods will update the state properties.
   function updateForm(value) {
@@ -15,35 +45,33 @@ function MyCreate() {
     });
   }
 
-  // This function will handle the submission.
   async function onSubmit(e) {
     e.preventDefault();
+    const editedPerson = {
+      name: form.name,
+      position: form.position,
+      level: form.level,
+    };
 
-    // When a post request is sent to the create url, we'll add a new record to the database.
-    const newPerson = { ...form };
-
-    await fetch("<Replace your API URL>/record", {
-      method: "POST",
+    // This will send a post request to update the data in the database.
+    await fetch(`http://localhost:8000/api/records/${params.id}`, {
+      method: "PUT",
+      body: JSON.stringify(editedPerson),
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(newPerson),
-    }).catch((error) => {
-      window.alert(error);
-      return;
     });
 
-    setForm({ name: "", position: "", level: "" });
     navigate("/");
   }
 
-  // This following section will display the form that takes the input from the user.
+  // This following section will display the form that takes input from the user to update the data.
   return (
     <div>
-      <h3>Create New Record</h3>
+      <h3>Update Record</h3>
       <form onSubmit={onSubmit}>
         <div className="form-group">
-          <label htmlFor="name">Name</label>
+          <label htmlFor="name">Name: </label>
           <input
             type="text"
             className="form-control"
@@ -53,7 +81,7 @@ function MyCreate() {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="position">Position</label>
+          <label htmlFor="position">Position: </label>
           <input
             type="text"
             className="form-control"
@@ -106,10 +134,12 @@ function MyCreate() {
             </label>
           </div>
         </div>
+        <br />
+
         <div className="form-group">
           <input
             type="submit"
-            value="Create person"
+            value="Update Record"
             className="btn btn-primary"
           />
         </div>
@@ -118,4 +148,4 @@ function MyCreate() {
   );
 }
 
-export default MyCreate;
+export default MyEdit;
