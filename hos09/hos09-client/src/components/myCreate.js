@@ -22,7 +22,7 @@ function MyCreate() {
     // When a post request is sent to the create url, we'll add a new record to the database.
     const newPerson = { ...form };
 
-    await fetch("<Replace your API URL>/record", {
+    await fetch("http://localhost:8000/api/records/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
